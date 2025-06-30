@@ -1,5 +1,6 @@
 "use client"
 
+import axios from 'axios';
 import { useState } from "react"
 
 // CSS Styles embedded in the component
@@ -1879,17 +1880,38 @@ function App() {
     setCurrentPage("registration")
   }
 
-  const handleRegistration = (formData) => {
-    console.log("Registration data:", formData)
+const handleRegistration = async (formData) => {
+  try {
+    const payload = {
+      Firstname: formData.firstName,
+      Lastname: formData.lastName,
+      Phonenumber: formData.mobile,
+      Gender: formData.gender,
+      MailID: formData.email,
+      DOB: formData.dateOfBirth,
+    };
+
+    const res = await axios.post("http://127.0.0.1:8000/customers", payload);
+
+    console.log("✅ Registered successfully:", res.data);
+
+    // Save user data to state
     setUserData({
       ...formData,
-      name: `${formData.firstName} ${formData.lastName}`,
+      ID: res.data.ID,
+      name: `${res.data.Firstname} ${res.data.Lastname}`,
       role: selectedCategory,
       lastLogin: new Date().toLocaleString(),
       profileCompletion: 25,
-    })
-    setCurrentPage("dashboard")
+    });
+
+    setCurrentPage("dashboard");
+  } catch (error) {
+    console.error("❌ Registration failed:", error.response?.data || error.message);
+    alert("Registration failed: " + (error.response?.data?.detail || error.message));
   }
+};
+
 
   const handleProfileUpdate = (profileData) => {
     console.log("Profile update data:", profileData)
