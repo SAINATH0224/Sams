@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date
 from typing import Optional
+from schemas.teaching_staff import TeachingStaffOut
 
 class CustomerCreate(BaseModel):
     Firstname: str
@@ -12,20 +13,6 @@ class CustomerCreate(BaseModel):
 
 class CustomerOut(CustomerCreate):
     ID: int
-    class Config:
-        orm_mode = True
-
-class TeachingStaffCreate(BaseModel):
-    Course: str
-    SubjectExpertise: str
-    WorkExperience: int
-    Certifications: str
-    MaritalStatus: str
-    RelocationOption: str
-    Designation: str
-
-class TeachingStaffOut(TeachingStaffCreate):
-    TeachingID: int
     class Config:
         orm_mode = True
 
