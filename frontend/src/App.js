@@ -1,5 +1,6 @@
 "use client"
 
+import axios from 'axios';
 import { useState } from "react"
 
 // CSS Styles embedded in the component
@@ -13,7 +14,7 @@ const styles = `
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: 'Arial', sans-serif; /* Changed font to Arial */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
@@ -111,6 +112,8 @@ body {
   align-items: center;
   gap: 1rem;
   position: relative;
+  /* Further adjustments for alignment */
+  justify-content: flex-start; /* Align items to the start */
 }
 
 .card-header-maroon::before {
@@ -154,6 +157,8 @@ body {
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 1;
+  /* Margin for better spacing */
+  margin-right: 1rem;
 }
 
 .back-btn:hover, .back-button:hover {
@@ -798,6 +803,106 @@ h5 {
   letter-spacing: -0.025em;
 }
 
+/* Details/Summary for collapsible sections */
+details {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+  overflow: hidden;
+}
+
+summary {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-weight: 600;
+  color: #374151;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  letter-spacing: -0.025em;
+}
+
+summary:hover {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::after {
+  content: "▼"; /* Down arrow */
+  font-size: 0.8em;
+  transition: transform 0.2s ease;
+}
+
+details[open] summary::after {
+  content: "▲"; /* Up arrow */
+  transform: rotate(180deg);
+}
+
+.details-content {
+  padding: 1.5rem;
+}
+
+/* New styles for document list flow */
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.document-name {
+  flex-grow: 1;
+  font-weight: 500;
+  color: #374151;
+}
+
+.document-status {
+  font-size: 0.85rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+.document-input-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #e5e7eb;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+  transition: all 0.2s ease;
+  border: 1px solid #d1d5db;
+}
+
+.document-input-button:hover {
+  background-color: #d1d5db;
+  border-color: #9ca3af;
+}
+
+.document-input-button input[type="file"] {
+  display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-grid {
@@ -843,6 +948,23 @@ h5 {
   .app, .app-login {
     padding: 1rem;
   }
+
+  /* Adjustments for smaller screens on maroon headers */
+  .card-header-maroon {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 4rem; /* Give space for the subtitle to not overlap */
+  }
+
+  .card-header-maroon .card-title {
+    margin-top: 0.5rem; /* Space between back button and title */
+  }
+
+  .card-header-maroon p {
+    position: static; /* Remove absolute positioning on small screens */
+    margin-top: 0.5rem;
+    padding-left: 0; /* Remove left padding if any */
+  }
 }
 `
 
@@ -865,19 +987,33 @@ function LoginPage({ onLogin, onSignUp }) {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
-    setIsLoading(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      onLogin({ mobile, password })
-    } catch (err) {
-      setErrors({ general: "Invalid credentials. Please try again." })
-    } finally {
-      setIsLoading(false)
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  if (!validateForm()) return
+  setIsLoading(true)
+
+  try {
+    // 1. Call backend to get all customers
+    const res = await axios.get("http://127.0.0.1:8000/customers")
+    const customers = res.data
+
+    // 2. Find if phone number exists
+    const user = customers.find(c => c.Phonenumber === mobile)
+
+    if (user) {
+      // 3. Found — call onLogin with user data
+      onLogin(user)
+    } else {
+      // 4. Not found — show error
+      setErrors({ general: "User not found. Please register first." })
     }
+  } catch (err) {
+    console.error(err)
+    setErrors({ general: "Error while logging in. Please try again." })
+  } finally {
+    setIsLoading(false)
   }
+}
 
   return (
     <div className="app-login">
@@ -944,7 +1080,7 @@ function LoginPage({ onLogin, onSignUp }) {
 }
 
 // Category Selection Component
-function CategorySelection({ onCategorySelect }) {
+function CategorySelection({ onCategorySelect, onBack }) {
   const categories = [
     { id: "Student", name: "Student", icon: "🎓", description: "Access courses, assignments, and attendance tracking" },
     {
@@ -959,11 +1095,16 @@ function CategorySelection({ onCategorySelect }) {
   return (
     <div className="app-login">
       <div className="card card-wide">
-        <div className="card-header">
-          <h1 className="card-title">Choose Your Role</h1>
-          <p style={{ marginTop: "0.5rem", opacity: 0.9, fontSize: "1rem" }}>
-            Select the category that best describes you
-          </p>
+        <div className="card-header-maroon">
+          <button onClick={onBack} className="back-button" aria-label="Go back">
+            ←
+          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flexGrow: 1 }}> {/* Flex container for title and subtitle */}
+            <h1 className="card-title" style={{ textAlign: "left" }}>Choose Your Role</h1>
+            <p style={{ opacity: 0.9, fontSize: "1rem" }}>
+              Select the category that best describes you
+            </p>
+          </div>
         </div>
         <div className="card-content">
           <div className="category-grid">
@@ -985,7 +1126,7 @@ function CategorySelection({ onCategorySelect }) {
 }
 
 // Registration Form Component
-function RegistrationForm({ category, onSubmit }) {
+function RegistrationForm({ category, onSubmit, onBack }) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -1034,9 +1175,14 @@ function RegistrationForm({ category, onSubmit }) {
   return (
     <div className="app-login">
       <div className="card card-wide">
-        <div className="card-header">
-          <h1 className="card-title">{category} Registration</h1>
-          <p style={{ marginTop: "0.5rem", opacity: 0.9, fontSize: "1rem" }}>Create your account to get started</p>
+        <div className="card-header-maroon">
+          <button onClick={onBack} className="back-button" aria-label="Go back">
+            ←
+          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flexGrow: 1 }}> {/* Flex container for title and subtitle */}
+            <h1 className="card-title" style={{ textAlign: "left" }}>{category} Registration</h1>
+            <p style={{ opacity: 0.9, fontSize: "1rem" }}>Create your account to get started</p>
+          </div>
         </div>
         <div className="card-content">
           <form onSubmit={handleSubmit} className="form">
@@ -1151,7 +1297,7 @@ function RegistrationForm({ category, onSubmit }) {
 }
 
 // Dashboard Component
-function Dashboard({ userData, onQuickAccess }) {
+function Dashboard({ userData, onQuickAccess, onLogout }) { // Added onLogout prop
   const getMenuItems = () => {
     switch (userData.role) {
       case "Student":
@@ -1289,6 +1435,10 @@ function Dashboard({ userData, onQuickAccess }) {
                     <span className="action-icon">📞</span>
                     Contact Admin
                   </button>
+                  <button onClick={onLogout} className="quick-action-btn" style={{ color: '#dc2626' }}> {/* Logout Button */}
+                    <span className="action-icon">➡️</span>
+                    Logout
+                  </button>
                 </div>
               </div>
             </div>
@@ -1297,6 +1447,29 @@ function Dashboard({ userData, onQuickAccess }) {
       </div>
     </div>
   )
+}
+
+// Reusable Document Upload Field Component
+function DocumentUploadField({ label, name, onFileUpload, uploadedFile }) {
+  const fileInputId = `file-upload-${name}`;
+  return (
+    <div className="document-item">
+      <div className="document-name">{label}</div>
+      {uploadedFile ? (
+        <div className="document-status">✅ {uploadedFile.name}</div>
+      ) : (
+        <label htmlFor={fileInputId} className="document-input-button">
+          Choose File
+          <input
+            id={fileInputId}
+            type="file"
+            name={name}
+            onChange={(e) => onFileUpload(name, e.target.files?.[0])}
+          />
+        </label>
+      )}
+    </div>
+  );
 }
 
 // Profile Update Component with comprehensive fields
@@ -1382,32 +1555,32 @@ function ProfileUpdate({ userData, onSubmit, onCancel }) {
         </div>
       </div>
 
-      <h5 style={{ color: "#B91C1C", marginTop: "30px", marginBottom: "20px" }}>📎 Document Uploads</h5>
-
-      <div className="document-upload-grid">
-        {[
-          { name: "memo10th", label: "10th Memo" },
-          { name: "memoInter", label: "Inter Memo" },
-          { name: "rankCard", label: "Rank Card" },
-          { name: "tc", label: "Transfer Certificate" },
-          { name: "casteCertificate", label: "Caste Certificate" },
-          { name: "incomeCertificate", label: "Income Certificate" },
-          { name: "aadharCard", label: "Aadhar Card" },
-          { name: "signature", label: "Signature" },
-          { name: "studentPhoto", label: "Student Photo" },
-        ].map((field) => (
-          <div key={field.name} className="form-group">
-            <label className="form-label">{field.label}</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => e.target.files?.[0] && handleFileUpload(field.name, e.target.files[0])}
-              className="file-upload-input"
-            />
-            {uploadedFiles[field.name] && <div className="upload-success">✅ File uploaded successfully</div>}
+      <details open> {/* Open by default for better visibility during testing */}
+        <summary>📎 Document Uploads</summary>
+        <div className="details-content">
+          <div className="document-list">
+            {[
+              { name: "memo10th", label: "10th Memo" },
+              { name: "memoInter", label: "Inter Memo" },
+              { name: "rankCard", label: "Rank Card" },
+              { name: "tc", label: "Transfer Certificate" },
+              { name: "casteCertificate", label: "Caste Certificate" },
+              { name: "incomeCertificate", label: "Income Certificate" },
+              { name: "aadharCard", label: "Aadhar Card" },
+              { name: "signature", label: "Signature" },
+              { name: "studentPhoto", label: "Student Photo" },
+            ].map((field) => (
+              <DocumentUploadField
+                key={field.name}
+                label={field.label}
+                name={field.name}
+                onFileUpload={handleFileUpload}
+                uploadedFile={uploadedFiles[field.name]}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </details>
     </>
   )
 
@@ -1501,25 +1674,26 @@ function ProfileUpdate({ userData, onSubmit, onCancel }) {
         ></textarea>
       </div>
 
-      <h5 style={{ color: "#B91C1C", marginTop: "30px", marginBottom: "20px" }}>📎 Document Uploads</h5>
-
-      <div className="form-row">
-        {[
-          { name: "resume", label: "Resume" },
-          { name: "facultyPhoto", label: "Faculty Photo" },
-        ].map((field) => (
-          <div key={field.name} className="form-group">
-            <label className="form-label">{field.label}</label>
-            <input
-              type="file"
-              accept={field.name === "resume" ? ".pdf,.doc,.docx" : "image/*"}
-              onChange={(e) => e.target.files?.[0] && handleFileUpload(field.name, e.target.files[0])}
-              className="file-upload-input"
-            />
-            {uploadedFiles[field.name] && <div className="upload-success">✅ File uploaded successfully</div>}
+      <details open> {/* Open by default for better visibility during testing */}
+        <summary>📎 Document Uploads</summary>
+        <div className="details-content">
+          <div className="document-list">
+            {[
+              { name: "resume", label: "Resume", accept: ".pdf,.doc,.docx" },
+              { name: "facultyPhoto", label: "Faculty Photo", accept: "image/*" },
+            ].map((field) => (
+              <DocumentUploadField
+                key={field.name}
+                label={field.label}
+                name={field.name}
+                onFileUpload={handleFileUpload}
+                uploadedFile={uploadedFiles[field.name]}
+                accept={field.accept}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </details>
     </>
   )
 
@@ -1559,7 +1733,8 @@ function ProfileUpdate({ userData, onSubmit, onCancel }) {
         </div>
         <div className="form-group">
           <label className="form-label">Role Type</label>
-          <select name="roleType" className="form-input" required>
+          <select name="roleType" className="form-input"
+           required>
             <option value="">Select access level</option>
             <option value="Admin Access">Admin Access</option>
             <option value="Reviewer">Reviewer</option>
@@ -1593,18 +1768,20 @@ function ProfileUpdate({ userData, onSubmit, onCancel }) {
         ></textarea>
       </div>
 
-      <h5 style={{ color: "#B91C1C", marginTop: "30px", marginBottom: "20px" }}>📎 Document Upload</h5>
-
-      <div className="form-group">
-        <label className="form-label">Management Person Photo</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => e.target.files?.[0] && handleFileUpload("managementPhoto", e.target.files[0])}
-          className="file-upload-input"
-        />
-        {uploadedFiles["managementPhoto"] && <div className="upload-success">✅ File uploaded successfully</div>}
-      </div>
+      <details open> {/* Open by default for better visibility during testing */}
+        <summary>📎 Document Upload</summary>
+        <div className="details-content">
+          <div className="document-list">
+            <DocumentUploadField
+              label="Management Person Photo"
+              name="managementPhoto"
+              onFileUpload={handleFileUpload}
+              uploadedFile={uploadedFiles["managementPhoto"]}
+              accept="image/*"
+            />
+          </div>
+        </div>
+      </details>
     </>
   )
 
@@ -1615,10 +1792,10 @@ function ProfileUpdate({ userData, onSubmit, onCancel }) {
       >
         <div className="main-card" style={{ maxWidth: "900px" }}>
           <div className="card-header-maroon" style={{ display: "flex", alignItems: "center" }}>
-            <button onClick={onCancel} className="back-button">
+            <button onClick={onCancel} className="back-button" aria-label="Go back">
               ←
             </button>
-            <h3>Update Profile - {userData.role}</h3>
+            <h3 className="card-title">Update Profile - {userData.role}</h3>
           </div>
           <div style={{ padding: "3rem" }}>
             <form onSubmit={handleSubmit}>
@@ -1666,7 +1843,7 @@ function ChangePassword({ onSubmit, onCancel }) {
       <div className="card">
         <div className="card-header">
           <div className="header-with-back">
-            <button onClick={onCancel} className="back-btn">
+            <button onClick={onCancel} className="back-btn" aria-label="Go back">
               ←
             </button>
             <h1 className="card-title">Change Password</h1>
@@ -1742,7 +1919,7 @@ function SubmitRequest({ onSubmit, onCancel }) {
       <div className="card card-medium">
         <div className="card-header">
           <div className="header-with-back">
-            <button onClick={onCancel} className="back-btn">
+            <button onClick={onCancel} className="back-btn" aria-label="Go back">
               ←
             </button>
             <h1 className="card-title">Submit a Request</h1>
@@ -1806,7 +1983,7 @@ function ContactAdmin({ onCancel }) {
       <div className="card card-medium">
         <div className="card-header">
           <div className="header-with-back">
-            <button onClick={onCancel} className="back-btn">
+            <button onClick={onCancel} className="back-btn" aria-label="Go back">
               ←
             </button>
             <h1 className="card-title">Contact Admin</h1>
@@ -1855,23 +2032,23 @@ function App() {
   const [showSubmitRequest, setShowSubmitRequest] = useState(false)
   const [showContactAdmin, setShowContactAdmin] = useState(false)
 
-  const handleLogin = (credentials) => {
-    console.log("Login attempt:", credentials)
-    setCurrentPage("dashboard")
-    // Generate generic user data based on mobile number
-    const firstName = "User"
-    const lastName = credentials.mobile.slice(-4) // Use last 4 digits for uniqueness
-    setUserData({
-      firstName: firstName,
-      lastName: lastName,
-      name: `${firstName} ${lastName}`,
-      role: "Student", // Default role, can be changed based on login logic
-      mobile: credentials.mobile,
-      email: `user${credentials.mobile.slice(-4)}@college.edu`,
-      lastLogin: new Date().toLocaleString(),
-      profileCompletion: 25,
-    })
-  }
+const handleLogin = (user) => {
+  console.log("✅ Logged in user:", user)
+
+  setUserData({
+    ID: user.ID,
+    firstName: user.Firstname,
+    lastName: user.Lastname,
+    name: `${user.Firstname} ${user.Lastname}`,
+    role: "Student", // Or fetch from your DB if you store role
+    mobile: user.Phonenumber,
+    email: user.MailID,
+    lastLogin: new Date().toLocaleString(),
+    profileCompletion: 25, // You can improve this later
+  })
+
+  setCurrentPage("dashboard")
+}
 
   const handleSignUp = () => setCurrentPage("category")
   const handleCategorySelect = (category) => {
@@ -1879,17 +2056,48 @@ function App() {
     setCurrentPage("registration")
   }
 
-  const handleRegistration = (formData) => {
-    console.log("Registration data:", formData)
+const handleRegistration = async (formData) => {
+  try {
+    const payload = {
+      Firstname: formData.firstName,
+      Lastname: formData.lastName,
+      Phonenumber: formData.mobile,
+      Gender: formData.gender,
+      MailID: formData.email,
+      DOB: formData.dateOfBirth,
+    };
+
+    const res = await axios.post("http://127.0.0.1:8000/customers", payload);
+
+    console.log("✅ Registered successfully:", res.data);
+
+    // Save user data to state
     setUserData({
       ...formData,
-      name: `${formData.firstName} ${formData.lastName}`,
+      ID: res.data.ID,
+      name: `${res.data.Firstname} ${res.data.Lastname}`,
       role: selectedCategory,
       lastLogin: new Date().toLocaleString(),
       profileCompletion: 25,
-    })
-    setCurrentPage("dashboard")
+    });
+
+    setCurrentPage("dashboard");
+  } catch (error) {
+    console.error("❌ Registration failed:", error.response?.data || error.message);
+    alert("Registration failed: " + (error.response?.data?.detail || error.message));
   }
+};
+
+  // New handleLogout function
+  const handleLogout = () => {
+    setUserData(null); // Clear user data
+    setCurrentPage("login"); // Go back to login page
+    setShowProfileUpdate(false);
+    setShowChangePassword(false);
+    setShowSubmitRequest(false);
+    setShowContactAdmin(false);
+    alert("You have been logged out.");
+  };
 
   const handleProfileUpdate = (profileData) => {
     console.log("Profile update data:", profileData)
@@ -1949,11 +2157,13 @@ function App() {
       case "login":
         return <LoginPage onLogin={handleLogin} onSignUp={handleSignUp} />
       case "category":
-        return <CategorySelection onCategorySelect={handleCategorySelect} />
+        // Pass a function to go back to login page
+        return <CategorySelection onCategorySelect={handleCategorySelect} onBack={() => setCurrentPage("login")} />
       case "registration":
-        return <RegistrationForm category={selectedCategory} onSubmit={handleRegistration} />
+        // Pass a function to go back to category selection
+        return <RegistrationForm category={selectedCategory} onSubmit={handleRegistration} onBack={() => setCurrentPage("category")} />
       case "dashboard":
-        return userData ? <Dashboard userData={userData} onQuickAccess={handleQuickAccess} /> : null
+        return userData ? <Dashboard userData={userData} onQuickAccess={handleQuickAccess} onLogout={handleLogout} /> : null // Pass onLogout
       default:
         return <LoginPage onLogin={handleLogin} onSignUp={handleSignUp} />
     }
