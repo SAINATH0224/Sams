@@ -2,12 +2,12 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from typing import List
+from database import Base
 
-from models import Base, Customer, TeachingStaff
-from schemas import (
-    CustomerCreate, CustomerOut, TeachingStaffCreate, 
-    TeachingStaffOut, CustomerWithTeaching
-)
+from models.customer import Customer
+from models.teaching_staff import TeachingStaff
+from schemas.customer import CustomerCreate, CustomerOut, CustomerWithTeaching
+from schemas.teaching_staff import TeachingStaffCreate, TeachingStaffOut
 
 # ------------------ Database Setup ------------------
 DATABASE_URL = "sqlite:///university.db"
