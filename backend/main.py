@@ -3,6 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from typing import List
 from database import Base
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from models.customer import Customer
 from models.teaching_staff import TeachingStaff
@@ -20,6 +22,20 @@ app = FastAPI(
     title="University Management API",
     description="Manage Customers and Teaching Staff details",
     version="1.0.0"
+)
+
+# Allow your frontend origin here
+origins = [
+    "http://localhost:3000",  # React dev server
+    # add production URLs if needed
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,              # Allow specific origins
+    allow_credentials=True,
+    allow_methods=["*"],                # Allow all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],                # Allow all headers
 )
 
 def get_db():
