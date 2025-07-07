@@ -3,6 +3,10 @@ from datetime import date
 from typing import Optional
 from schemas.teaching_staff import TeachingStaffOut
 
+class LoginRequest(BaseModel):
+    user_name: str
+    password: str
+
 class CustomerCreate(BaseModel):
     Firstname: str
     Lastname: str
@@ -10,6 +14,16 @@ class CustomerCreate(BaseModel):
     Gender: str
     MailID: str
     DOB: date
+
+class LoginResponse(BaseModel):
+    ID: int
+    Firstname: str
+    Lastname: str
+    Phonenumber: str
+    Gender: str
+    MailID: str
+    DOB: date
+    
 
 class CustomerOut(CustomerCreate):
     ID: int

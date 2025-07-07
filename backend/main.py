@@ -6,7 +6,7 @@ from database import Base
 
 from models.customer import Customer
 from models.teaching_staff import TeachingStaff
-from schemas.customer import CustomerCreate, CustomerOut, CustomerWithTeaching
+from schemas.customer import CustomerCreate, CustomerOut, CustomerWithTeaching, LoginRequest, LoginResponse 
 from schemas.teaching_staff import TeachingStaffCreate, TeachingStaffOut
 
 # ------------------ Database Setup ------------------
@@ -30,6 +30,21 @@ def get_db():
         db.close()
 
 # ------------------ Customer CRUD ------------------
+
+@app.post("/login", response_model=LoginResponse)
+def customer_login(customer: LoginRequest, db: Session = Depends(get_db)):
+    
+    user_details = db.query(Customer).filter(Customer.Phonenumber == customer.user_name).first()
+
+    if not user_details:
+        raise HTTPException(status_code=400, detail="User not found") 
+
+    return LoginResponse(ID=user_details.ID, Firstname=user_details.Firstname, Lastname=user_details.Lastname,
+                         Phonenumber=user_details.Phonenumber, Gender=user_details.Gender,
+                         MailID=user_details.MailID, DOB=user_details.DOB)
+
+
+
 @app.post("/customers", response_model=CustomerOut, tags=["Customer API"])
 def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
     db_customer = Customer(**customer.dict())
