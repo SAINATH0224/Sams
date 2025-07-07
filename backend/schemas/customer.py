@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import date
 from typing import Optional
 from schemas.teaching_staff import TeachingStaffOut
-
+from models.customer import UserType
 class LoginRequest(BaseModel):
     user_name: str
     password: str
@@ -14,6 +14,7 @@ class CustomerCreate(BaseModel):
     Gender: str
     MailID: str
     DOB: date
+    CustomerType: UserType
 
 class LoginResponse(BaseModel):
     ID: int

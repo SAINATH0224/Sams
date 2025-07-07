@@ -40,14 +40,25 @@ def get_teaching_profile(customer_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{customer_id}", response_model=TeachingStaffOut)
 def update_teaching_profile(customer_id: int, data: TeachingStaffCreate, db: Session = Depends(get_db)):
-    profile = db.query(TeachingStaff).filter(TeachingStaff.TeachingID == customer_id).first()
+    profile = db.query(Customer).filter(Customer.ID == customer_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Teaching profile not found")
-    for key, value in data.dict().items():
-        setattr(profile, key, value)
+    
+    # Course = Column(String(50))
+    # SubjectExpertise = Column(String(100))
+    # WorkExperience = Column(Integer)
+    # Certifications = Column(String)
+    # MaritalStatus = Column(String(20))
+    # RelocationOption = Column(String(10))
+    # Designation = Column(String(100))
+    new_profile = TeachingStaff(TeachingID=customer_id, Course=data.Course, SubjectExpertise=data.SubjectExpertise,
+                                WorkExperience=data.WorkExperience, Certifications=data.Certifications,
+                                MaritalStatus=data.MaritalStatus, RelocationOption=data.RelocationOption,
+                                Designation=data.Designation)
+    db.add(new_profile)
     db.commit()
-    db.refresh(profile)
-    return profile
+    db.refresh(new_profile)
+    return new_profile
 
 @router.delete("/{customer_id}")
 def delete_teaching_profile(customer_id: int, db: Session = Depends(get_db)):

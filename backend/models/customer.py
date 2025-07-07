@@ -1,6 +1,12 @@
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date,  Enum as SqlEnum
 from sqlalchemy.orm import relationship
 from database import Base
+from enum import Enum
+
+class UserType(str, Enum):
+    staff = "staff"
+    student = "student"
+    management = "management"
 
 class Customer(Base):
     __tablename__ = "Customer"
@@ -11,5 +17,6 @@ class Customer(Base):
     Gender = Column(String(10))
     MailID = Column(String(100), unique=True)
     DOB = Column(Date)
+    CustomerType = Column(SqlEnum(UserType))  # e.g., "Student", "Staff", etc.
 
     teaching_info = relationship("TeachingStaff", back_populates="customer", uselist=False)
