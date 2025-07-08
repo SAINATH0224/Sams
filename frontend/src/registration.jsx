@@ -3,6 +3,7 @@
 import { useState } from "react"
 import "./registration.css"
 import StudentDashboard from "./Dashboard/Student_dashboard"
+import axios from "axios"
 
 export default function StudentRegistration({ onBack, onRegisterSuccess }) {
   const [formData, setFormData] = useState({
@@ -125,7 +126,7 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const newErrors = {}
@@ -156,6 +157,22 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
       setRegisteredName({ firstName: formData.firstName, lastName: formData.lastName })
       setRegistered(true)
       if (onRegisterSuccess) onRegisterSuccess({ firstName: formData.firstName, lastName: formData.lastName })
+    }
+
+
+    const response = await axios.post('http://localhost:8000/customers', {
+      Firstname: formData.firstName,
+      Lastname: formData.lastName,
+      Phonenumber: formData.mobileNumber,
+      MailID: formData.mailId,
+      Gender: formData.gender,
+      DOB: formData.dateOfBirth,
+      CustomerType: "student"
+    })
+    if (response.status === 200) {
+      console.log("Registration successful:", response.data);
+    } else {
+      console.error("Registration failed:", response.data);
     }
   }
 
