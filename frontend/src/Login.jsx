@@ -65,53 +65,27 @@ const LoginPage = (props) => {
     }))
   }
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault()
 
-  const mobileError = validateMobileNumber(formData.mobileNumber);
-  const passwordError = validatePassword(formData.password);
+    const mobileError = validateMobileNumber(formData.mobileNumber)
+    const passwordError = validatePassword(formData.password)
 
-  setErrors({
-    mobileNumber: mobileError,
-    password: passwordError,
-  });
+    setErrors({
+      mobileNumber: mobileError,
+      password: passwordError,
+    })
 
-  setTouched({
-    mobileNumber: true,
-    password: true,
-  });
+    setTouched({
+      mobileNumber: true,
+      password: true,
+    })
 
-  if (!mobileError && !passwordError) {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          mobileNumber: formData.mobileNumber,
-          password: formData.password,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.detail || "Login failed");
-        return;
-      }
-
-      const result = await response.json();
-      console.log("Login success:", result);
-      alert("Login successful!");
-      if (props.onLoginSuccess) props.onLoginSuccess();
-
-    } catch (error) {
-      console.error("Error logging in:", error);
-      alert("An error occurred during login.");
+    if (!mobileError && !passwordError) {
+      console.log("Login successful:", formData)
+      alert("Login successful!")
     }
   }
-};
-
 
   return (
     <div className="login-page" style={{ backgroundImage: `url(${backgroundImg})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '100vh' }}>
