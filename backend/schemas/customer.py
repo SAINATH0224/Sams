@@ -15,6 +15,8 @@ class CustomerCreate(BaseModel):
     MailID: str
     DOB: date
     CustomerType: UserType
+    Password: str
+    
 
 class LoginResponse(BaseModel):
     ID: int
@@ -24,6 +26,7 @@ class LoginResponse(BaseModel):
     Gender: str
     MailID: str
     DOB: date
+    customer_type: UserType
     
 
 class CustomerOut(CustomerCreate):

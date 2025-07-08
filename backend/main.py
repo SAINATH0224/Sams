@@ -20,7 +20,7 @@ Base.metadata.create_all(bind=engine)
 
 # ------------------ FastAPI Setup ------------------
 app = FastAPI(
-    title="University Management API",
+    title="Smart Attendance Management System API",
     description="Manage Customers and Teaching Staff details",
     version="1.0.0"
 )
