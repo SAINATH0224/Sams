@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import "./Login.css"
+import axios from "axios"
 import backgroundImg from "./background.png"
 
 const LoginPage = (props) => {
@@ -65,53 +66,44 @@ const LoginPage = (props) => {
     }))
   }
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault()
 
-  const mobileError = validateMobileNumber(formData.mobileNumber);
-  const passwordError = validatePassword(formData.password);
-
-  setErrors({
-    mobileNumber: mobileError,
-    password: passwordError,
-  });
-
-  setTouched({
-    mobileNumber: true,
-    password: true,
-  });
-
-  if (!mobileError && !passwordError) {
+    console.log("Form Data:", formData);
     try {
-      const response = await fetch("http://127.0.0.1:8000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          mobileNumber: formData.mobileNumber,
-          password: formData.password,
-        }),
-      });
+      // Validate all fields before making the API call
+      const mobileError = validateMobileNumber(formData.mobileNumber)
+      const passwordError = validatePassword(formData.password)
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.detail || "Login failed");
+      setErrors({
+        mobileNumber: mobileError,
+        password: passwordError,
+      })
+
+      if (mobileError || passwordError) {
+        console.error("Validation errors:", { mobileError, passwordError });
         return;
       }
 
-      const result = await response.json();
-      console.log("Login success:", result);
-      alert("Login successful!");
-      if (props.onLoginSuccess) props.onLoginSuccess();
+      const response = await axios.post('http://localhost:8000/customers/login', {
+        user_name: formData.mobileNumber,
+        password: formData.password,
+      });
+
+    if (response.status === 200) {
+      console.log("Login successful:", response.data);
+    } else {
+      console.error("Login failed:", response.data);
+  }
 
     } catch (error) {
-      console.error("Error logging in:", error);
-      alert("An error occurred during login.");
+      console.error("Error during validation:", error);
+      alert("An error occurred during validation. Please try again.");
+      return; 
     }
-  }
-};
 
+    
+}
 
   return (
     <div className="login-page" style={{ backgroundImage: `url(${backgroundImg})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '100vh' }}>

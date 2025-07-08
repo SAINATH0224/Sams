@@ -1,9 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import "./registration.css"
-import StudentDashboard from "./Dashboard/Student_dashboard"
-import axios from "axios"
+import "./Faculty_registration.css"
 
 export default function StudentRegistration({ onBack, onRegisterSuccess }) {
   const [formData, setFormData] = useState({
@@ -19,8 +17,6 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
 
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
-  const [registered, setRegistered] = useState(false)
-  const [registeredName, setRegisteredName] = useState({ firstName: "", lastName: "" })
 
   const validateField = (name, value) => {
     let error = ""
@@ -126,7 +122,7 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
     }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     const newErrors = {}
@@ -143,6 +139,7 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
     if (Object.keys(newErrors).length === 0) {
       console.log("Form submitted successfully:", formData)
       alert("Registration successful!")
+
       setFormData({
         firstName: "",
         lastName: "",
@@ -154,30 +151,10 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
         confirmPassword: "",
       })
       setTouched({})
-      setRegisteredName({ firstName: formData.firstName, lastName: formData.lastName })
-      setRegistered(true)
-      if (onRegisterSuccess) onRegisterSuccess({ firstName: formData.firstName, lastName: formData.lastName })
+      if (typeof onRegisterSuccess === 'function') {
+        onRegisterSuccess();
+      }
     }
-
-
-    const response = await axios.post('http://localhost:8000/customers', {
-      Firstname: formData.firstName,
-      Lastname: formData.lastName,
-      Phonenumber: formData.mobileNumber,
-      MailID: formData.mailId,
-      Gender: formData.gender,
-      DOB: formData.dateOfBirth,
-      CustomerType: "student"
-    })
-    if (response.status === 200) {
-      console.log("Registration successful:", response.data);
-    } else {
-      console.error("Registration failed:", response.data);
-    }
-  }
-
-  if (registered) {
-    return <StudentDashboard firstName={registeredName.firstName} lastName={registeredName.lastName} />
   }
 
   return (
@@ -187,7 +164,7 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
           <button className="back-button" onClick={onBack}>&larr; Back</button>
           <form onSubmit={handleSubmit} className="div">
             <div className="category-top" />
-            <div className="text-wrapper-2">Student Registration</div>
+            <div className="text-wrapper-2">Faculty Registration</div>
 
             <div className="name">
               <div className="overlap-group">
