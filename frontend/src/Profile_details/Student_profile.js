@@ -2,11 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import './Student_profile.css';
 import backgroundImg from '../background.png';
+import axios from 'axios';
 
 // === COMPONENT ===
-const StudentRegistrationForm = ({ onBack }) => {
+const StudentRegistrationForm = ({ onBack, lockedFields }) => {
   // === STATE & VALIDATION ===
   const [formData, setFormData] = useState({
+    firstName: '',
+    secondName: '',
+    mobileNumber: '',
+    emailId: '',
+    dob: '',
     studentId: '',
     courseBranch: '',
     bloodGroup: '',
@@ -45,6 +51,30 @@ const StudentRegistrationForm = ({ onBack }) => {
     };
   }, []);
 
+  // Intergartion is HERE
+  useEffect(() => {
+    const studentId = localStorage.getItem('studentId');
+    if (studentId) {
+      axios.get(`http://localhost:8000/customers/${studentId}`)
+        .then(res => {
+          // If backend returns an array, use the first item
+          const data = Array.isArray(res.data) ? res.data[0] : res.data;
+          setFormData(prev => ({
+            ...prev,
+            firstName: data.Firstname || '',
+            secondName: data.Lastname || '',
+            mobileNumber: data.Phonenumber || '',
+            emailId: data.MailID || '',
+            dob: data.DOB || '',
+            // keep other fields as is
+          }));
+        })
+        .catch(err => {
+          // handle error (optional)
+        });
+    }
+  }, []);
+
   // === VALIDATION FUNCTION ===
   const validate = (field, value) => {
     if (field.startsWith('documents.')) {
@@ -52,6 +82,26 @@ const StudentRegistrationForm = ({ onBack }) => {
       return '';
     }
     switch (field) {
+      case 'firstName':
+        if (!value) return 'First Name is required.';
+        if (value.length < 2) return 'First Name must be at least 2 characters.';
+        return '';
+      case 'secondName':
+        if (!value) return 'Second Name is required.';
+        if (value.length < 2) return 'Second Name must be at least 2 characters.';
+        return '';
+      case 'mobileNumber':
+        if (!value) return 'Mobile Number is required.';
+        if (!/^\d{10}$/.test(value)) return 'Enter a valid 10-digit mobile number.';
+        return '';
+      case 'emailId':
+        if (!value) return 'Email ID is required.';
+        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Enter a valid email address.';
+        return '';
+      case 'dob':
+        if (!value) return 'Date of Birth is required.';
+        // Optionally, add age validation here
+        return '';
       case 'studentId':
         if (!value) return 'Student ID is required.';
         return '';
@@ -161,7 +211,73 @@ const StudentRegistrationForm = ({ onBack }) => {
           <form onSubmit={handleSubmit} noValidate>
             {/* === GRID LAYOUT === */}
             <div className="form-grid">
-              {/* === INPUTS & SELECTS === */}
+              {/* New fields at the top */}
+              <div className="input-group">
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  placeholder="First Name"
+                  className="input-field"
+                  readOnly={lockedFields}
+                />
+                {touched.firstName && errors.firstName && <div className="error-hint">{errors.firstName}</div>}
+              </div>
+              <div className="input-group">
+                <input
+                  type="text"
+                  name="secondName"
+                  value={formData.secondName}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  placeholder="Second Name"
+                  className="input-field"
+                  readOnly={lockedFields}
+                />
+                {touched.secondName && errors.secondName && <div className="error-hint">{errors.secondName}</div>}
+              </div>
+              <div className="input-group">
+                <input
+                  type="tel"
+                  name="mobileNumber"
+                  value={formData.mobileNumber}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  placeholder="Mobile Number"
+                  className="input-field"
+                  readOnly={lockedFields}
+                />
+                {touched.mobileNumber && errors.mobileNumber && <div className="error-hint">{errors.mobileNumber}</div>}
+              </div>
+              <div className="input-group">
+                <input
+                  type="email"
+                  name="emailId"
+                  value={formData.emailId}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  placeholder="Email ID"
+                  className="input-field"
+                  readOnly={lockedFields}
+                />
+                {touched.emailId && errors.emailId && <div className="error-hint">{errors.emailId}</div>}
+              </div>
+              <div className="input-group">
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  placeholder="Date of Birth"
+                  className="input-field"
+                  readOnly={lockedFields}
+                />
+                {touched.dob && errors.dob && <div className="error-hint">{errors.dob}</div>}
+              </div>
+              {/* Existing fields follow */}
               <div className="input-group">
                 <input
                   type="text"

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import './Faculty_dashboard.css';
 import backgroundImg from '../background.png';
 
-const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogout }) => {
+const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogout, onCompleteProfile }) => {
   useEffect(() => {
     document.body.style.backgroundImage = `url(${backgroundImg})`;
     document.body.style.backgroundSize = 'cover';
@@ -40,7 +40,7 @@ const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogo
               <div className="progress-fill"></div>
             </div>
           </div>
-          <button className="complete-profile-btn" onClick={onUpdateProfile}>Complete Profile</button>
+          <button className="complete-profile-btn" onClick={onCompleteProfile}>Complete Profile</button>
         </div>
       </div>
 
@@ -144,7 +144,7 @@ const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogo
         <div className="quick-access-section">
           <h2 className="section-title">Quick Access</h2>
           <div className="quick-access-menu">
-            <div className="menu-item">
+            <div className="menu-item" onClick={onUpdateProfile} style={{ cursor: 'pointer' }}>
               <div className="menu-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
@@ -152,7 +152,7 @@ const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogo
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2" />
                 </svg>
               </div>
-              <span>Update Password</span>
+              <span>Update Profile</span>
             </div>
             <div className="menu-item">
               <div className="menu-icon">
@@ -172,14 +172,6 @@ const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogo
                 </svg>
               </div>
               <span>Logout</span>
-            </div>
-            <div className="menu-item">
-              <div className="menu-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2" />
-                </svg>
-              </div>
-              <span>Contact Admin</span>
             </div>
           </div>
         </div>

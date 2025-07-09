@@ -90,11 +90,16 @@ const LoginPage = (props) => {
         password: formData.password,
       });
 
-    if (response.status === 200) {
-      console.log("Login successful:", response.data);
-    } else {
-      console.error("Login failed:", response.data);
-  }
+      if (response.status >= 200 && response.status < 300) {
+        if (response.data && response.data.ID !== undefined) {
+          localStorage.setItem('studentId', response.data.ID);
+        }
+        if (props.onLoginSuccess) {
+          props.onLoginSuccess();
+        }
+      } else {
+        console.error("Login failed:", response.data);
+      }
 
     } catch (error) {
       console.error("Error during validation:", error);
