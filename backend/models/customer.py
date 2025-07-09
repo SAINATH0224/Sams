@@ -18,5 +18,7 @@ class Customer(Base):
     MailID = Column(String(100), unique=True)
     DOB = Column(Date)
     CustomerType = Column(SqlEnum(UserType))  # e.g., "Student", "Staff", etc.
+    Password = Column(String(255))  # You can increase size or hash before storing
+
 
     teaching_info = relationship("TeachingStaff", back_populates="customer", uselist=False)

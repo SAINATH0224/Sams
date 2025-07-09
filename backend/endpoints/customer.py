@@ -3,8 +3,19 @@ from sqlalchemy.orm import Session
 from models.customer import Customer
 from schemas.customer import CustomerCreate, CustomerOut, CustomerWithTeaching, LoginRequest, LoginResponse
 from database import SessionLocal
+from passlib.context import CryptContext
+
 
 router = APIRouter(prefix="/customers", tags=["Customer API"])
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
 
 def get_db():
     db = SessionLocal()
@@ -19,17 +30,23 @@ def customer_login(customer: LoginRequest, db: Session = Depends(get_db)):
     user_details = db.query(Customer).filter(Customer.Phonenumber == customer.user_name).first()
 
     if not user_details:
-        raise HTTPException(status_code=400, detail="User not found") 
+        raise HTTPException(status_code=400, detail="User not found")
+
+    if not verify_password(customer.password, user_details.Password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+
 
     return LoginResponse(ID=user_details.ID, Firstname=user_details.Firstname, Lastname=user_details.Lastname,
                          Phonenumber=user_details.Phonenumber, Gender=user_details.Gender,
-                         MailID=user_details.MailID, DOB=user_details.DOB)
+                         MailID=user_details.MailID, DOB=user_details.DOB,customer_type=user_details.CustomerType)
 
 
 
 @router.post("", response_model=CustomerOut)
 def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
-    db_customer = Customer(**customer.dict())
+    customer_data = customer.dict()
+    customer_data["Password"] = hash_password(customer.Password)
+    db_customer = Customer(**customer_data)
     db.add(db_customer)
     db.commit()
     db.refresh(db_customer)
