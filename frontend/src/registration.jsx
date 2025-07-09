@@ -167,9 +167,13 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
       MailID: formData.mailId,
       Gender: formData.gender,
       DOB: formData.dateOfBirth,
-      CustomerType: "student"
+      CustomerType: "student",
     })
     if (response.status === 200) {
+      // Store student ID in localStorage
+      if (response.data && response.data.ID !== undefined) {
+        localStorage.setItem('studentId', response.data.ID);
+      }
       console.log("Registration successful:", response.data);
     } else {
       console.error("Registration failed:", response.data);
@@ -187,7 +191,7 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
           <button className="back-button" onClick={onBack}>&larr; Back</button>
           <form onSubmit={handleSubmit} className="div">
             <div className="category-top" />
-            <div className="text-wrapper-2">Student Registration</div>
+            <div className="text-wrapper-2">Registration</div>
 
             <div className="name">
               <div className="overlap-group">

@@ -134,10 +134,6 @@ function Dashboard({ userData, onQuickAccess, onLogout }) {
                     <span className="action-icon">📤</span>
                     Submit a Request
                   </button>
-                  <button onClick={() => onQuickAccess("contact")} className="quick-action-btn">
-                    <span className="action-icon">📞</span>
-                    Contact Admin
-                  </button>
                   <button onClick={onLogout} className="quick-action-btn" style={{ color: '#dc2626' }}>
                     <span className="action-icon">➡️</span>
                     Logout
