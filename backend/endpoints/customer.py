@@ -4,6 +4,8 @@ from models.customer import Customer
 from schemas.customer import CustomerCreate, CustomerOut, CustomerWithTeaching, LoginRequest, LoginResponse
 from database import SessionLocal
 from passlib.context import CryptContext
+from schemas.customer import CustomerWithStudent
+from models.customer import Customer
 
 
 router = APIRouter(prefix="/customers", tags=["Customer API"])
@@ -77,4 +79,13 @@ def get_customer_with_teaching(customer_id: int, db: Session = Depends(get_db)):
     customer = db.query(Customer).filter(Customer.ID == customer_id).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
+    return customer
+
+@router.get("/customers/student/{customer_id}", response_model=CustomerWithStudent)
+def get_customer_with_student(customer_id: int, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.ID == customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    if customer.CustomerType != "student":
+        raise HTTPException(status_code=400, detail="Customer is not a student")
     return customer

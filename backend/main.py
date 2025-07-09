@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import List
 from database import Base
 from fastapi.middleware.cors import CORSMiddleware
-from endpoints import customer, teaching_staff
+from endpoints import customer, teaching_staff,student
 
 
 from models.customer import Customer
@@ -49,3 +49,4 @@ def get_db():
 
 app.include_router(customer.router)
 app.include_router(teaching_staff.router)
+app.include_router(student.router) 
