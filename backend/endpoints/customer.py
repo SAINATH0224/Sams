@@ -62,6 +62,9 @@ def get_all_customers(db: Session = Depends(get_db)):
         temp_user = CustomerDetails(ID=user_details.ID, Firstname=user_details.Firstname, Lastname=user_details.Lastname,
                          Phonenumber=user_details.Phonenumber, Gender=user_details.Gender,
                          MailID=user_details.MailID, DOB=user_details.DOB,customer_type=user_details.CustomerType)
+        all_customers.append(temp_user)
+    if not all_customers:
+        raise HTTPException(status_code=404, detail="No customers found")
     
     return AllCustomers(data=all_customers, msg="Success") 
 
