@@ -27,9 +27,9 @@ def create_teaching_profile(customer_id: int, profile: TeachingStaffCreate, db: 
     db.refresh(new_profile)
     return new_profile
 
-@router.get("", response_model=list[TeachingStaffOut])
-def get_all_teaching_profiles(db: Session = Depends(get_db)):
-    return db.query(TeachingStaff).all()
+# @router.get("", response_model=list[TeachingStaffOut])
+# def get_all_teaching_profiles(db: Session = Depends(get_db)):
+#     return db.query(TeachingStaff).all()
 
 @router.get("/{customer_id}", response_model=TeachingStaffOut)
 def get_teaching_profile(customer_id: int, db: Session = Depends(get_db)):
