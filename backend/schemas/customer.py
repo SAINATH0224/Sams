@@ -3,6 +3,10 @@ from datetime import date
 from typing import Optional
 from schemas.teaching_staff import TeachingStaffOut
 from models.customer import UserType
+from schemas.student import StudentOut
+
+
+
 class LoginRequest(BaseModel):
     user_name: str
     password: str
@@ -43,6 +47,10 @@ class CustomerWithTeaching(BaseModel):
     MailID: str
     DOB: date
     teaching_info: Optional[TeachingStaffOut]
+
+class CustomerWithStudent(CustomerOut):
+    student: Optional[StudentOut]
+
 
     class Config:
         orm_mode = True

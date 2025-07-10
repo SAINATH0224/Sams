@@ -22,3 +22,4 @@ class Customer(Base):
 
 
     teaching_info = relationship("TeachingStaff", back_populates="customer", uselist=False)
+    student = relationship("Student", back_populates="customer", uselist=False)
