@@ -167,6 +167,7 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
       MailID: formData.mailId,
       Gender: formData.gender,
       DOB: formData.dateOfBirth,
+      Password: formData.password,
       CustomerType: "student",
     })
     if (response.status === 200) {
