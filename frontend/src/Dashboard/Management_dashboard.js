@@ -1,7 +1,28 @@
 import "./Faculty_dashboard.css"
+import React, { useEffect, useState } from 'react';
 import ManagementProfile from '../Profile_details/Management_profile';
 
 const ManagementDashboard = ({ firstName, lastName, onBack, onUpdateProfile, onCompleteProfile, onLogout }) => {
+  const [staffCount, setStaffCount] = useState(0);
+  const [studentCount, setStudentCount] = useState(0);
+
+  useEffect(() => {
+    fetch('http://localhost:8000/customers')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.data) {
+          const staff = data.data.filter((c) => c.customer_type === 'staff').length;
+          const students = data.data.filter((c) => c.customer_type === 'student').length;
+          setStaffCount(staff);
+          setStudentCount(students);
+        }
+      })
+      .catch((err) => {
+        setStaffCount(0);
+        setStudentCount(0);
+      });
+  }, []);
+
   return (
     <div className="dashboard-container">
       {/* Header */}
@@ -84,19 +105,7 @@ const ManagementDashboard = ({ firstName, lastName, onBack, onUpdateProfile, onC
               </div>
               <h3>Faculty Count</h3>
               <p className="card-description">Check total faculty</p>
-              <p className="card-info">Current: 98 faculty</p>
-              <button className="card-button" style={{
-                background: '#8a0a11',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}>
-                Check
-              </button>
+              <p className="card-info">Available Faculty: {staffCount}</p>
             </div>
 
             {/* Student Count Card */}
@@ -113,19 +122,7 @@ const ManagementDashboard = ({ firstName, lastName, onBack, onUpdateProfile, onC
               </div>
               <h3>Students Count</h3>
               <p className="card-description">Check total students</p>
-              <p className="card-info">Current: 1,247 students</p>
-              <button className="card-button" style={{
-                background: '#8a0a11',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}>
-                Check
-              </button>
+              <p className="card-info">Including all branches: {studentCount} </p>
             </div>
           </div>
         </div>

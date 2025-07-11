@@ -1,7 +1,24 @@
 import "./Faculty_dashboard.css"
+import React, { useEffect, useState } from 'react';
 import FacultyProfile from '../Profile_details/Faculty_profile';
 
 const FacultyDashboard = ({ firstName, lastName, onBack, onUpdateProfile, onCompleteProfile, onLogout }) => {
+  const [studentCount, setStudentCount] = useState(0);
+
+  useEffect(() => {
+    fetch('http://localhost:8000/customers')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.data) {
+          const students = data.data.filter((c) => c.customer_type === 'student').length;
+          setStudentCount(students);
+        }
+      })
+      .catch((err) => {
+        setStudentCount(0);
+      });
+  }, []);
+
   return (
     <div className="dashboard-container">
       {/* Header */}
@@ -84,19 +101,7 @@ const FacultyDashboard = ({ firstName, lastName, onBack, onUpdateProfile, onComp
               </div>
               <h3>Students Count</h3>
               <p className="card-description">Check total students</p>
-              <p className="card-info">Current: 1,247 students</p>
-              <button className="card-button" style={{
-                background: '#8a0a11',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}>
-                Check
-              </button>
+              <p className="card-info">Current: {studentCount} students</p>
             </div>
           </div>
         </div>
