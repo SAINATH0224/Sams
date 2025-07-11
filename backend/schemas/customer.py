@@ -1,11 +1,19 @@
 from pydantic import BaseModel
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 from schemas.teaching_staff import TeachingStaffOut
 from models.customer import UserType
 from schemas.student import StudentOut
 
-
+class CustomerDetails(BaseModel):
+    ID: int
+    Firstname: str
+    Lastname: str
+    Phonenumber: str
+    Gender: str
+    MailID: str
+    DOB: date
+    customer_type: UserType
 
 class LoginRequest(BaseModel):
     user_name: str
@@ -22,16 +30,12 @@ class CustomerCreate(BaseModel):
     Password: str
     
 
-class LoginResponse(BaseModel):
-    ID: int
-    Firstname: str
-    Lastname: str
-    Phonenumber: str
-    Gender: str
-    MailID: str
-    DOB: date
-    customer_type: UserType
+class LoginResponse(CustomerDetails):
+    pass
     
+class AllCustomers(BaseModel):
+    data:List[CustomerDetails]
+    msg: str
 
 class CustomerOut(CustomerCreate):
     ID: int

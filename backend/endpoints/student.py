@@ -1,11 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+import base64
+import cv2
+import numpy as np
 from models.student import Student
 from models.customer import Customer
 from schemas.student import StudentCreate, StudentBase, StudentOut
 from database import SessionLocal
 
 router = APIRouter(prefix="/student", tags=["Student API"])
+
+# ---------- Pydantic Model for Image Upload ----------
+class ImageUpload(BaseModel):
+    image_base64: str
+
+# ---------- Face Detection Function ----------
+def detect_single_face(image_bytes):
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        return False
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    return len(faces) == 1
 
 def get_db():
     db = SessionLocal()
@@ -60,3 +81,29 @@ def delete_student(customer_id: int, db: Session = Depends(get_db)):
     db.delete(student)
     db.commit()
     return {"message": "Student record deleted successfully"}
+
+# ✅ Face Verification for Student
+@router.post("/verify-face/{customer_id}")
+def verify_face(customer_id: str, data: ImageUpload):
+    """
+    Verify if the uploaded image contains exactly one face for student verification
+    using the given customer_id.
+    """
+    # 1. Decode the image
+    try:
+        image_base64 = data.image_base64.split(",")[-1]  # remove prefix if exists
+        image_bytes = base64.b64decode(image_base64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="❌ Invalid base64 format.")
+
+    # 2. Detect face
+    is_valid_face = detect_single_face(image_bytes)
+
+    # 3. Log customer ID
+    print(f"Verifying face for customer ID: {customer_id}")
+
+    return {
+        "valid_face": is_valid_face,
+        "customer_id": customer_id
+    }
+
