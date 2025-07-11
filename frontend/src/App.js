@@ -9,6 +9,7 @@ import ManagementDashboard from "./Dashboard/Management_dashboard";
 import StudentProfile from "./Profile_details/Student_profile";
 import FacultyProfile from "./Profile_details/Faculty_profile";
 import ManagementProfile from "./Profile_details/Management_profile";
+import AttendancePunching from "./Attendance_punching";
 import "./App.css";
 import axios from "axios";
 
@@ -48,9 +49,10 @@ function LogoutConfirm({ onConfirm, onCancel }) {
 }
 
 function App() {
-  const [studentName, setStudentName] = useState({ firstName: "", lastName: "" });
+  const [userData, setUserData] = useState({ firstName: "", lastName: "" });
   const [studentProfileLocked, setStudentProfileLocked] = useState(false);
-  const [showFacultyProfile, setShowFacultyProfile] = useState(false);
+  const [facultyProfileLocked, setFacultyProfileLocked] = useState(false);
+  const [managementProfileLocked, setManagementProfileLocked] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [pendingLogoutPage, setPendingLogoutPage] = useState(null);
 
@@ -58,13 +60,23 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === "/student-dashboard") {
-      const studentId = localStorage.getItem("studentId");
-      if (studentId) {
-        axios.get(`http://localhost:8000/customers/${studentId}`)
+    // Handle user data for different dashboard types
+    const dashboardPaths = ["/student-dashboard", "/faculty-dashboard", "/management-dashboard"];
+    if (dashboardPaths.includes(location.pathname)) {
+      let userId = null;
+      if (location.pathname === "/student-dashboard") {
+        userId = localStorage.getItem("studentId");
+      } else if (location.pathname === "/faculty-dashboard") {
+        userId = localStorage.getItem("facultyId");
+      } else if (location.pathname === "/management-dashboard") {
+        userId = localStorage.getItem("managementId");
+      }
+      
+      if (userId) {
+        axios.get(`http://localhost:8000/customers/${userId}`)
           .then(res => {
             const data = Array.isArray(res.data) ? res.data[0] : res.data;
-            setStudentName({
+            setUserData({
               firstName: data.Firstname || "",
               lastName: data.Lastname || ""
             });
@@ -80,28 +92,55 @@ function App() {
         <Route path="/" element={
           <LoginPage
             onSignUp={() => navigate("/category")}
-            onLoginSuccess={() => navigate("/student-dashboard")}
+            onLoginSuccess={(userData) => {
+              // Set user data
+              setUserData({
+                firstName: userData.Firstname || "",
+                lastName: userData.Lastname || ""
+              });
+              
+              // Navigate to appropriate dashboard based on customer type
+              const customerType = userData?.customer_type;
+              if (customerType === "student") {
+                navigate("/student-dashboard");
+              } else if (customerType === "staff") {
+                navigate("/faculty-dashboard");
+              } else if (customerType === "management") {
+                navigate("/management-dashboard");
+              } else {
+                navigate("/student-dashboard"); // default fallback
+              }
+            }}
           />
         } />
         <Route path="/category" element={
           <CategoryPage
             onBack={() => navigate("/")}
-            onCategorySelect={() => navigate("/registration")}
+            onCategorySelect={(category) => navigate("/registration", { state: { selectedCategory: category } })}
           />
         } />
         <Route path="/registration" element={
           <RegistrationPage
             onBack={() => navigate("/category")}
-            onRegisterSuccess={(name) => {
-              setStudentName(name);
-              navigate("/student-dashboard");
+            onRegisterSuccess={(name, category) => {
+              setUserData(name);
+              // Navigate to appropriate dashboard based on category
+              if (category === "student") {
+                navigate("/student-dashboard");
+              } else if (category === "teaching-faculty") {
+                navigate("/faculty-dashboard");
+              } else if (category === "Management") {
+                navigate("/management-dashboard");
+              } else {
+                navigate("/student-dashboard"); // default fallback
+              }
             }}
           />
         } />
         <Route path="/student-dashboard" element={
           <StudentDashboard
-            firstName={studentName.firstName}
-            lastName={studentName.lastName}
+            firstName={userData.firstName}
+            lastName={userData.lastName}
             onUpdateProfile={() => {
               setStudentProfileLocked(false);
               navigate("/student-profile");
@@ -124,42 +163,62 @@ function App() {
           />
         } />
         <Route path="/faculty-dashboard" element={
-          showFacultyProfile ? (
-            <FacultyProfile
-              onBack={() => setShowFacultyProfile(false)}
-              onLogout={() => {
-                setPendingLogoutPage("/faculty-dashboard");
-                setShowLogoutConfirm(true);
-              }}
-            />
-          ) : (
-            <FacultyDashboard
-              onBack={() => navigate("/faculty-registration")}
-              onUpdateProfile={() => setShowFacultyProfile(true)}
-              onLogout={() => {
-                setPendingLogoutPage("/faculty-dashboard");
-                setShowLogoutConfirm(true);
-              }}
-              onCompleteProfile={() => setShowFacultyProfile(true)}
-            />
-          )
+          <FacultyDashboard
+            firstName={userData.firstName}
+            lastName={userData.lastName}
+            onBack={() => navigate("/category")}
+            onUpdateProfile={() => {
+              setFacultyProfileLocked(false);
+              navigate("/faculty-profile");
+            }}
+            onLogout={() => {
+              setPendingLogoutPage("/faculty-dashboard");
+              setShowLogoutConfirm(true);
+            }}
+            onCompleteProfile={() => {
+              setFacultyProfileLocked(true);
+              navigate("/faculty-profile");
+            }}
+          />
+        } />
+        <Route path="/faculty-profile" element={
+          <FacultyProfile
+            onBack={() => navigate("/faculty-dashboard")}
+            lockedFields={facultyProfileLocked}
+          />
         } />
         <Route path="/management-dashboard" element={
           <ManagementDashboard
-            onBack={() => navigate("/management-registration")}
+            firstName={userData.firstName}
+            lastName={userData.lastName}
+            onBack={() => navigate("/category")}
+            onUpdateProfile={() => {
+              setManagementProfileLocked(false);
+              navigate("/management-profile");
+            }}
             onLogout={() => {
               setPendingLogoutPage("/management-dashboard");
               setShowLogoutConfirm(true);
+            }}
+            onCompleteProfile={() => {
+              setManagementProfileLocked(true);
+              navigate("/management-profile");
             }}
           />
         } />
         <Route path="/management-profile" element={
           <ManagementProfile
             onBack={() => navigate("/management-dashboard")}
+            lockedFields={managementProfileLocked}
             onLogout={() => {
               setPendingLogoutPage("/management-profile");
               setShowLogoutConfirm(true);
             }}
+          />
+        } />
+        <Route path="/attendance-punching" element={
+          <AttendancePunching
+            onBack={() => navigate("/student-dashboard")}
           />
         } />
       </Routes>
@@ -168,7 +227,10 @@ function App() {
         <LogoutConfirm
           onConfirm={() => {
             setShowLogoutConfirm(false);
-            setShowFacultyProfile(false);
+            // Clear all user IDs from localStorage
+            localStorage.removeItem('studentId');
+            localStorage.removeItem('facultyId');
+            localStorage.removeItem('managementId');
             navigate("/");
           }}
           onCancel={() => {

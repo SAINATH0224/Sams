@@ -1,11 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useLocation } from "react-router-dom"
 import "./registration.css"
-import StudentDashboard from "./Dashboard/Student_dashboard"
 import axios from "axios"
 
 export default function StudentRegistration({ onBack, onRegisterSuccess }) {
+  const location = useLocation()
+  const selectedCategory = location.state?.selectedCategory || "student"
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -21,6 +24,20 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
   const [touched, setTouched] = useState({})
   const [registered, setRegistered] = useState(false)
   const [registeredName, setRegisteredName] = useState({ firstName: "", lastName: "" })
+  
+  // Map category to customer type
+  const getCustomerType = (category) => {
+    switch (category) {
+      case "student":
+        return "student"
+      case "teaching-faculty":
+        return "staff"
+      case "Management":
+        return "management"
+      default:
+        return "student"
+    }
+  }
 
   const validateField = (name, value) => {
     let error = ""
@@ -141,49 +158,58 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
     setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}))
 
     if (Object.keys(newErrors).length === 0) {
-      console.log("Form submitted successfully:", formData)
-      alert("Registration successful!")
-      setFormData({
-        firstName: "",
-        lastName: "",
-        mobileNumber: "",
-        mailId: "",
-        gender: "",
-        dateOfBirth: "",
-        password: "",
-        confirmPassword: "",
-      })
-      setTouched({})
-      setRegisteredName({ firstName: formData.firstName, lastName: formData.lastName })
-      setRegistered(true)
-      if (onRegisterSuccess) onRegisterSuccess({ firstName: formData.firstName, lastName: formData.lastName })
-    }
-
-
-    const response = await axios.post('http://localhost:8000/customers', {
-      Firstname: formData.firstName,
-      Lastname: formData.lastName,
-      Phonenumber: formData.mobileNumber,
-      MailID: formData.mailId,
-      Gender: formData.gender,
-      DOB: formData.dateOfBirth,
-      Password: formData.password,
-      CustomerType: "student",
-    })
-    if (response.status === 200) {
-      // Store student ID in localStorage
-      if (response.data && response.data.ID !== undefined) {
-        localStorage.setItem('studentId', response.data.ID);
+      try {
+        const customerType = getCustomerType(selectedCategory)
+        
+        const response = await axios.post('http://localhost:8000/customers', {
+          Firstname: formData.firstName,
+          Lastname: formData.lastName,
+          Phonenumber: formData.mobileNumber,
+          MailID: formData.mailId,
+          Gender: formData.gender,
+          DOB: formData.dateOfBirth,
+          Password: formData.password,
+          CustomerType: customerType,
+        })
+        
+        if (response.status === 200) {
+          // Store user ID in localStorage based on type
+          if (response.data && response.data.ID !== undefined) {
+            if (customerType === "student") {
+              localStorage.setItem('studentId', response.data.ID);
+            } else if (customerType === "staff") {
+              localStorage.setItem('facultyId', response.data.ID);
+            } else if (customerType === "management") {
+              localStorage.setItem('managementId', response.data.ID);
+            }
+          }
+          
+          console.log("Registration successful:", response.data);
+          alert("Registration successful!")
+          
+          setFormData({
+            firstName: "",
+            lastName: "",
+            mobileNumber: "",
+            mailId: "",
+            gender: "",
+            dateOfBirth: "",
+            password: "",
+            confirmPassword: "",
+          })
+          setTouched({})
+          setRegisteredName({ firstName: formData.firstName, lastName: formData.lastName })
+          setRegistered(true)
+          if (onRegisterSuccess) onRegisterSuccess({ firstName: formData.firstName, lastName: formData.lastName }, selectedCategory)
+        }
+      } catch (error) {
+        console.error("Registration failed:", error.response?.data || error.message);
+        alert("Registration failed. Please try again.");
       }
-      console.log("Registration successful:", response.data);
-    } else {
-      console.error("Registration failed:", response.data);
     }
   }
 
-  if (registered) {
-    return <StudentDashboard firstName={registeredName.firstName} lastName={registeredName.lastName} />
-  }
+  // Note: Dashboard navigation is handled by App.js through onRegisterSuccess callback
 
   return (
     <div className="student-registration">
@@ -192,7 +218,12 @@ export default function StudentRegistration({ onBack, onRegisterSuccess }) {
           <button className="back-button" onClick={onBack}>&larr; Back</button>
           <form onSubmit={handleSubmit} className="div">
             <div className="category-top" />
-            <div className="text-wrapper-2">Registration</div>
+            <div className="text-wrapper-2">
+              {selectedCategory === "student" ? "Student Registration" :
+               selectedCategory === "teaching-faculty" ? "Faculty Registration" :
+               selectedCategory === "Management" ? "Management Registration" :
+               "Registration"}
+            </div>
 
             <div className="name">
               <div className="overlap-group">

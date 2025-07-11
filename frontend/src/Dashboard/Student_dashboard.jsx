@@ -137,6 +137,8 @@ const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogo
               <p className="card-info" style={{ fontSize: '2rem', color: '#F59E0B', fontWeight: 700 }}>5</p>
               <p className="card-description">Upcoming</p>
             </div>
+
+
           </div>
         </div>
 
@@ -162,6 +164,15 @@ const StudentDashboard = ({ firstName, lastName, onUpdateProfile, onBack, onLogo
                 </svg>
               </div>
               <span>Change Password</span>
+            </div>
+            <div className="menu-item" onClick={() => window.location.href = '/attendance-punching'} style={{ cursor: 'pointer' }}>
+              <div className="menu-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2v6m0 6v6m10-7h-6m-6 0H2" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+              <span>Attendance Punching</span>
             </div>
             <div className="menu-item" onClick={onLogout} style={{ cursor: 'pointer' }}>
               <div className="menu-icon">

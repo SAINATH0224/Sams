@@ -92,18 +92,32 @@ const LoginPage = (props) => {
 
       if (response.status >= 200 && response.status < 300) {
         if (response.data && response.data.ID !== undefined) {
-          localStorage.setItem('studentId', response.data.ID);
+          // Store user ID based on customer type
+          const customerType = response.data.customer_type;
+          if (customerType === "student") {
+            localStorage.setItem('studentId', response.data.ID);
+          } else if (customerType === "staff") {
+            localStorage.setItem('facultyId', response.data.ID);
+          } else if (customerType === "management") {
+            localStorage.setItem('managementId', response.data.ID);
+          }
         }
         if (props.onLoginSuccess) {
-          props.onLoginSuccess();
+          props.onLoginSuccess(response.data);
         }
       } else {
         console.error("Login failed:", response.data);
       }
 
     } catch (error) {
-      console.error("Error during validation:", error);
-      alert("An error occurred during validation. Please try again.");
+      console.error("Login error:", error);
+      if (error.response?.status === 400) {
+        alert("User not found. Please check your mobile number.");
+      } else if (error.response?.status === 401) {
+        alert("Invalid password. Please try again.");
+      } else {
+        alert("Login failed. Please try again.");
+      }
       return; 
     }
 
