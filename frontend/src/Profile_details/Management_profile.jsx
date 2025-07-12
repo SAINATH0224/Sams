@@ -4,12 +4,15 @@ import backgroundImg from '../background.png';
 import axios from 'axios';
 
 const ManagementProfile = ({ onBack, lockedFields }) => {
-  const [formData, setFormData] = useState({
+  const [registrationDetails, setRegistrationDetails] = useState({
     firstName: '',
-    secondName: '',
+    lastName: '',
     mobileNumber: '',
     emailId: '',
     dob: '',
+  });
+
+  const [formData, setFormData] = useState({
     managementId: '',
     department: '',
     bloodGroup: '',
@@ -28,6 +31,25 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
+  // Fetch management registration details from backend
+  useEffect(() => {
+    const managementId = localStorage.getItem('managementId');
+    if (managementId) {
+      axios.get(`http://localhost:8000/customers/${managementId}`)
+        .then(res => {
+          const data = Array.isArray(res.data) ? res.data[0] : res.data;
+          setRegistrationDetails({
+            firstName: data.Firstname || '',
+            lastName: data.Lastname || '',
+            mobileNumber: data.Phonenumber || '',
+            emailId: data.MailID || '',
+            dob: data.DOB || '',
+          });
+        })
+        .catch(() => {});
+    }
+  }, []);
+
   useEffect(() => {
     document.body.style.backgroundImage = `url(${backgroundImg})`;
     document.body.style.backgroundSize = 'cover';
@@ -43,55 +65,12 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
     };
   }, []);
 
-  // Fetch user data from backend
-  useEffect(() => {
-    const managementId = localStorage.getItem('managementId');
-    if (managementId) {
-      axios.get(`http://localhost:8000/customers/${managementId}`)
-        .then(res => {
-          // If backend returns an array, use the first item
-          const data = Array.isArray(res.data) ? res.data[0] : res.data;
-          setFormData(prev => ({
-            ...prev,
-            firstName: data.Firstname || '',
-            secondName: data.Lastname || '',
-            mobileNumber: data.Phonenumber || '',
-            emailId: data.MailID || '',
-            dob: data.DOB || '',
-            // keep other fields as is
-          }));
-        })
-        .catch(err => {
-          console.error('Error fetching management data:', err);
-        });
-    }
-  }, []);
-
   const validate = (field, value) => {
     if (field.startsWith('documents.')) {
       if (!value) return 'This document is required.';
       return '';
     }
     switch (field) {
-      case 'firstName':
-        if (!value) return 'First Name is required.';
-        if (value.length < 2) return 'First Name must be at least 2 characters.';
-        return '';
-      case 'secondName':
-        if (!value) return 'Second Name is required.';
-        if (value.length < 2) return 'Second Name must be at least 2 characters.';
-        return '';
-      case 'mobileNumber':
-        if (!value) return 'Mobile Number is required.';
-        if (!/^\d{10}$/.test(value)) return 'Enter a valid 10-digit mobile number.';
-        return '';
-      case 'emailId':
-        if (!value) return 'Email ID is required.';
-        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Enter a valid email address.';
-        return '';
-      case 'dob':
-        if (!value) return 'Date of Birth is required.';
-        return '';
       case 'managementId':
         if (!value) return 'Management ID is required.';
         return '';
@@ -193,73 +172,62 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
         <div className="form-body">
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-grid">
-              {/* Basic user information fields */}
+              {/* Registration Details (read-only in complete profile, editable in update profile) */}
               <div className="input-group">
                 <input
                   type="text"
                   name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
+                  value={registrationDetails.firstName}
                   placeholder="First Name"
-                  className="input-field"
                   readOnly={lockedFields}
+                  disabled={lockedFields}
+                  className="input-field"
                 />
-                {touched.firstName && errors.firstName && <div className="error-hint">{errors.firstName}</div>}
               </div>
               <div className="input-group">
                 <input
                   type="text"
-                  name="secondName"
-                  value={formData.secondName}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  placeholder="Second Name"
-                  className="input-field"
+                  name="lastName"
+                  value={registrationDetails.lastName}
+                  placeholder="Last Name"
                   readOnly={lockedFields}
+                  disabled={lockedFields}
+                  className="input-field"
                 />
-                {touched.secondName && errors.secondName && <div className="error-hint">{errors.secondName}</div>}
               </div>
               <div className="input-group">
                 <input
                   type="tel"
                   name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
+                  value={registrationDetails.mobileNumber}
                   placeholder="Mobile Number"
-                  className="input-field"
                   readOnly={lockedFields}
+                  disabled={lockedFields}
+                  className="input-field"
                 />
-                {touched.mobileNumber && errors.mobileNumber && <div className="error-hint">{errors.mobileNumber}</div>}
               </div>
               <div className="input-group">
                 <input
                   type="email"
                   name="emailId"
-                  value={formData.emailId}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
+                  value={registrationDetails.emailId}
                   placeholder="Email ID"
-                  className="input-field"
                   readOnly={lockedFields}
+                  disabled={lockedFields}
+                  className="input-field"
                 />
-                {touched.emailId && errors.emailId && <div className="error-hint">{errors.emailId}</div>}
               </div>
               <div className="input-group">
                 <input
                   type="date"
                   name="dob"
-                  value={formData.dob}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
+                  value={registrationDetails.dob}
                   placeholder="Date of Birth"
-                  className="input-field"
                   readOnly={lockedFields}
+                  disabled={lockedFields}
+                  className="input-field"
                 />
-                {touched.dob && errors.dob && <div className="error-hint">{errors.dob}</div>}
               </div>
-              {/* Management specific fields */}
               <div className="input-group">
                 <input
                   type="text"
@@ -269,6 +237,7 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   required
+                  disabled={lockedFields}
                 />
                 {touched.managementId && errors.managementId && <div className="error-hint">{errors.managementId}</div>}
               </div>
@@ -281,6 +250,7 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   required
+                  disabled={lockedFields}
                 />
                 {touched.department && errors.department && <div className="error-hint">{errors.department}</div>}
               </div>
@@ -291,6 +261,7 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
                   onChange={handleInputChange} 
                   onBlur={handleBlur}
                   required
+                  disabled={lockedFields}
                 >
                   <option value="">Blood Group</option>
                   <option value="A+">A+</option>
@@ -313,6 +284,7 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   required
+                  disabled={lockedFields}
                 />
                 {touched.nationality && errors.nationality && <div className="error-hint">{errors.nationality}</div>}
               </div>
@@ -325,6 +297,7 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
                   onChange={handleInputChange}
                   onBlur={handleBlur}
                   required
+                  disabled={lockedFields}
                 />
                 {touched.religion && errors.religion && <div className="error-hint">{errors.religion}</div>}
               </div>
@@ -335,6 +308,7 @@ const ManagementProfile = ({ onBack, lockedFields }) => {
                   onChange={handleInputChange} 
                   onBlur={handleBlur}
                   required
+                  disabled={lockedFields}
                 >
                   <option value="">Category</option>
                   <option value="general">General</option>
