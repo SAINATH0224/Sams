@@ -72,6 +72,3 @@ Sams/
 
 ## 🤝 Contributors
 This project is developed collaboratively by the SAMS team.
-
-## 📜 License
-This project is licensed under the MIT License.
